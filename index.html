@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vote with Webcam</title>
+</head>
+<body>
+  <h1>Cast Your Vote</h1>
+  <video id="video" width="320" height="240" autoplay></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+  <br>
+  <button id="capture">Capture Photo & Vote</button>
+
+  <script>
+    // Access webcam
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+          video.srcObject = stream;
+          video.play();
+      })
+      .catch((err) => {
+          console.error("Error accessing webcam: " + err);
+      });
+
+    document.getElementById('capture').addEventListener('click', () => {
+      // Capture image from video
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Get base64 image data
+      const base64Image = canvas.toDataURL('image/jpeg');
+
+      // Prepare data payload (adjust voter_id and candidate accordingly)
+      const data = {
+        voter_id: 1, // Use the correct voter_id after registration
+        candidate: "Candidate_A",
+        live_photo: base64Image // send base64 encoded image data
+      };
+
+      // Send POST request to vote endpoint
+      fetch('http://127.0.0.1:5000/vote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        alert("Vote Response: " + JSON.stringify(result));
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  </script>
+</body>
+</html>
